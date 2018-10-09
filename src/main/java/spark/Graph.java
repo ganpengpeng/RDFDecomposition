@@ -3,14 +3,13 @@ package spark;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Graph {
     //    Set<Integer> vertices;
     HashMap<Integer, String> vertexName;
     HashMap<String, Integer> vertexId;
-    ArrayList<ArrayList<String>> edge;
+    HashMap<Integer, HashMap<Integer, String>> edge;
     //    ArrayList<ArrayList<Integer>> edge2;
     String dataPath;
     Integer count;
@@ -18,13 +17,13 @@ public class Graph {
     private Graph(String path) {
         vertexId = new HashMap<>();
         vertexName = new HashMap<>();
-        edge = new ArrayList<>();
+        edge = new HashMap<>();
         count = -1;
         dataPath = path;
     }
 
     public static void main(String[] args) {
-        Graph graph = new Graph("/home/peng/IdeaProjects/sparkjni/test.n3");
+        Graph graph = new Graph("/home/peng/IdeaProjects/spark-jni/test.n3");
         graph.loadGraph();
         graph.printGraph();
     }
@@ -46,20 +45,18 @@ public class Graph {
                 if (subjectId == null) {
                     incCount();
                     subjectId = count;
-                    vertexId.put(spo[0], count);
-                    vertexName.put(count, spo[0]);
-                    edge.add(subjectId, new ArrayList<>());
+                    vertexId.put(spo[0], subjectId);
+                    vertexName.put(subjectId, spo[0]);
+                    edge.put(subjectId, new HashMap<>());
                 }
                 objectId = vertexId.get(spo[2]);
                 if (objectId == null) {
                     incCount();
                     objectId = count;
-                    vertexId.put(spo[2], count);
-                    vertexName.put(count, spo[2]);
-                    edge.get(subjectId).add(objectId, spo[1]);
+                    vertexId.put(spo[2], objectId);
+                    vertexName.put(objectId, spo[2]);
+                    edge.get(subjectId).put(objectId, spo[1]);
                 }
-                edge.add(subjectId, new ArrayList<>());
-                edge.get(subjectId).add(objectId, spo[1]);
                 triple = reader.readLine();
             }
         } catch (IOException e) {
@@ -81,8 +78,10 @@ public class Graph {
     public void printGraph() {
         if (count == 0)
             return;
-        for (Integer integer : vertexName.keySet()) {
-            System.out.println(integer + ": " + vertexName.get(integer));
+        for (Integer integer : edge.keySet()) {
+            for (Integer integer1 : edge.get(integer).keySet()) {
+                System.out.println(vertexName.get(integer) + ' ' + vertexName.get(integer1) + ' ' + edge.get(integer).get(integer1));
+            }
         }
     }
 }
