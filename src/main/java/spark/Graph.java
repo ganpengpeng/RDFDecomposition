@@ -26,10 +26,11 @@ public class Graph {
         edge = new HashMap<>();
         count = -1;
         dataPath = path;
+        endToEndPathSet = new ArrayList<>();
     }
 
     public static void main(String[] args) {
-        Graph graph = new Graph("/home/peng/IdeaProjects/spark-jni/graph.n3");
+        Graph graph = new Graph("/home/peng/IdeaProjects/spark-jni/LUBM1U.n3");
         graph.loadGraph();
         //graph.printGraph();
         graph.generateEP();
@@ -119,24 +120,16 @@ public class Graph {
         path.add(id);
         visited[id] = true;
         if (outDegree.get(id) == 0) {
-            try {
-                endToEndPathSet.add(path);
-            } catch (NullPointerException e) {
-                printPath(path);
-                System.out.println();
-            }
+            endToEndPathSet.add(path);
+            printPath(path);
             return;
         }
         HashMap<Integer, String> nextSet = edge.get(id);
         for (Integer integer : nextSet.keySet()) {
             if (path.contains(integer)) {
                 path.add(integer);
-                try {
-                    endToEndPathSet.add(path);
-                } catch (NullPointerException e) {
-                    printPath(path);
-                    System.out.println();
-                }
+                endToEndPathSet.add(path);
+                printPath(path);
                 path.remove(path.size() - 1);
             } else {
                 DFS(path, visited, integer);
@@ -167,7 +160,9 @@ public class Graph {
 
     public void printPath(ArrayList<Integer> path){
         for (Integer integer : path) {
-            System.out.print(vertexName.get(integer) + " ");
+            //System.out.print(vertexName.get(integer) + " ");
+            System.out.print(integer + " ");
         }
+        System.out.println();
     }
 }
