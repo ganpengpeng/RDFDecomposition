@@ -3,7 +3,9 @@ package spark;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Graph {
     //    Set<Integer> vertices;
@@ -12,9 +14,9 @@ public class Graph {
     HashMap<Integer, Integer> inDegree;
     HashMap<Integer, Integer> outDegree;
     HashMap<Integer, HashMap<Integer, String>> edge;
-    //    ArrayList<ArrayList<Integer>> edge2;
-    String dataPath;
     Integer count;
+    String dataPath;
+    ArrayList<ArrayList<Integer>> endToEndPathSet;
 
     private Graph(String path) {
         vertexId = new HashMap<>();
@@ -27,9 +29,11 @@ public class Graph {
     }
 
     public static void main(String[] args) {
-        Graph graph = new Graph("/home/peng/IdeaProjects/spark-jni/LUBM1U.n3");
+        Graph graph = new Graph("/home/peng/IdeaProjects/spark-jni/graph.n3");
         graph.loadGraph();
         //graph.printGraph();
+        graph.generateEP();
+        //graph.printEP();
     }
 
     public boolean loadGraph() {
@@ -94,8 +98,51 @@ public class Graph {
         count += 1;
     }
 
-    public void graphDFS() {
+    public void generateEP() {
+        ArrayList<Integer> path = new ArrayList<>();
+        boolean[] visited = new boolean[vertexName.size()];
+        for (Map.Entry<Integer, Integer> entry : inDegree.entrySet()) {
+            if (entry.getValue() == 0) {
+                path.clear();
+                DFS(path, visited, entry.getKey());
+            }
+        }
+        for (int i = 0; i < visited.length; ++i) {
+            if (visited[i] == false) {
+                path.clear();
+                DFS(path, visited, i);
+            }
+        }
+    }
 
+    public void DFS(ArrayList<Integer> path, boolean[] visited, Integer id) {
+        path.add(id);
+        visited[id] = true;
+        if (outDegree.get(id) == 0) {
+            try {
+                endToEndPathSet.add(path);
+            } catch (NullPointerException e) {
+                printPath(path);
+                System.out.println();
+            }
+            return;
+        }
+        HashMap<Integer, String> nextSet = edge.get(id);
+        for (Integer integer : nextSet.keySet()) {
+            if (path.contains(integer)) {
+                path.add(integer);
+                try {
+                    endToEndPathSet.add(path);
+                } catch (NullPointerException e) {
+                    printPath(path);
+                    System.out.println();
+                }
+                path.remove(path.size() - 1);
+            } else {
+                DFS(path, visited, integer);
+                path.remove(path.size() - 1);
+            }
+        }
     }
 
     public void printGraph() {
@@ -110,5 +157,17 @@ public class Graph {
             }
         }
         System.out.println("i = " + i);
+    }
+
+    public void printEP() {
+        for (ArrayList<Integer> path : endToEndPathSet) {
+            printPath(path);
+        }
+    }
+
+    public void printPath(ArrayList<Integer> path){
+        for (Integer integer : path) {
+            System.out.print(vertexName.get(integer) + " ");
+        }
     }
 }
