@@ -20,7 +20,14 @@ public class ApproximateAlgorithm {
     }
 
     public static void main(String[] args) {
-        ApproximateAlgorithm aa = new ApproximateAlgorithm("/home/peng/IdeaProjects/spark-jni/graph.n3");
+        ApproximateAlgorithm aa;
+        if (System.getProperty("os.name").contains("Windows")) {
+            aa = new ApproximateAlgorithm("C:\\Users\\peng\\IdeaProjects\\spark-jni\\graph.n3");
+        } else if (System.getProperty("os.name").contains("Linux")){
+            aa = new ApproximateAlgorithm("/home/peng/IdeaProjects/spark-jni/graph.n3");
+        } else {
+            aa = new ApproximateAlgorithm("/home/ganpeng/spark/graph.n3");
+        }
         aa.initialize();
         aa.printResult();
         aa.printVertexPath();
@@ -100,7 +107,7 @@ public class ApproximateAlgorithm {
     public void printVertexWeight() {
         for (Map.Entry<Integer, Double> entry : vertexWeight.entrySet()) {
             System.out.println("---vertex value: " + graph.vertexName.get(entry.getKey()) +
-                " vertex weight: " + entry.getValue() + " ---");
+                    " vertex weight: " + entry.getValue() + " ---");
         }
     }
 }
