@@ -18,7 +18,7 @@ public class Graph {
     String dataPath;
     ArrayList<ArrayList<Integer>> endToEndPathSet;
 
-    private Graph(String path) {
+    public Graph(String path) {
         vertexId = new HashMap<>();
         vertexName = new HashMap<>();
         inDegree = new HashMap<>();
@@ -30,11 +30,11 @@ public class Graph {
     }
 
     public static void main(String[] args) {
-        Graph graph = new Graph("/home/peng/IdeaProjects/spark-jni/LUBM1U.n3");
+        Graph graph = new Graph("/home/peng/IdeaProjects/spark-jni/graph.n3");
         graph.loadGraph();
         //graph.printGraph();
         graph.generateEP();
-        //graph.printEP();
+        graph.printEP();
     }
 
     public boolean loadGraph() {
@@ -85,6 +85,7 @@ public class Graph {
 //            }
         } catch (IOException e) {
             e.printStackTrace();
+            return false;
         }
 
         return true;
@@ -120,16 +121,22 @@ public class Graph {
         path.add(id);
         visited[id] = true;
         if (outDegree.get(id) == 0) {
-            endToEndPathSet.add(path);
-            printPath(path);
+            endToEndPathSet.add(new ArrayList<>(path));
+//            printPath(path);
+//            System.out.println("---start---");
+//            printEP();
+//            System.out.println("---end---");
             return;
         }
         HashMap<Integer, String> nextSet = edge.get(id);
         for (Integer integer : nextSet.keySet()) {
             if (path.contains(integer)) {
                 path.add(integer);
-                endToEndPathSet.add(path);
-                printPath(path);
+                endToEndPathSet.add(new ArrayList<>(path));
+//                printPath(path);
+//                System.out.println("---start---");
+//                printEP();
+//                System.out.println("---end---");
                 path.remove(path.size() - 1);
             } else {
                 DFS(path, visited, integer);
@@ -160,8 +167,8 @@ public class Graph {
 
     public void printPath(ArrayList<Integer> path){
         for (Integer integer : path) {
-            //System.out.print(vertexName.get(integer) + " ");
-            System.out.print(integer + " ");
+            System.out.print(vertexName.get(integer) + " ");
+//            System.out.print(integer + " ");
         }
         System.out.println();
     }
