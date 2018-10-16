@@ -7,6 +7,7 @@ import java.util.Map;
 public class ApproximateAlgorithm {
     ArrayList<ArrayList<ArrayList<Integer>>> result;
     HashMap<Integer, ArrayList<ArrayList<Integer>>> vertexPath;
+    HashMap<Integer, Double> vertexWeight;
     //    Set<Integer> vertexSet;
     Graph graph;
 
@@ -14,22 +15,37 @@ public class ApproximateAlgorithm {
         graph = new Graph(path);
         result = new ArrayList<>();
         vertexPath = new HashMap<>();
+        vertexWeight = new HashMap<>();
 //        vertexSet = new HashSet<>();
     }
 
     public static void main(String[] args) {
         ApproximateAlgorithm aa = new ApproximateAlgorithm("/home/peng/IdeaProjects/spark-jni/graph.n3");
         aa.initialize();
+        aa.printResult();
+        aa.printVertexPath();
+        aa.printVertexWeight();
     }
 
-    public static void approximateAlgorithm() {
+    public void approximateAlgorithm() {
+        //merge start vertices
+        for (Map.Entry<Integer, Integer> entry : graph.inDegree.entrySet()) {
+            if (entry.getKey() == 0) {
+                //mergeVertex();
+                // TODO
+            }
+        }
+    }
+
+    public void mergeVertex(Integer vid) {
+        // TODO
 
     }
 
     public void initialize() {
         graph.loadGraph();
         graph.generateEP();
-
+        //init Res and E<v>
         for (ArrayList<Integer> arrayList : graph.endToEndPathSet) {
             result.add(new ArrayList<>());
             //try to not use new here
@@ -43,6 +59,14 @@ public class ApproximateAlgorithm {
                 }
             }
         }
+        //calculate weight of vertices
+        for (Map.Entry<Integer, ArrayList<ArrayList<Integer>>> entry : vertexPath.entrySet()) {
+            Double sum = new Double(0);
+            for (ArrayList<Integer> integers : entry.getValue()) {
+                sum += integers.size();
+            }
+            vertexWeight.put(entry.getKey(), sum);
+        }
     }
 
     public void printResult() {
@@ -50,7 +74,8 @@ public class ApproximateAlgorithm {
             System.out.println("---path group start---");
             for (ArrayList<Integer> path : pathGroup) {
                 for (Integer integer : path) {
-                    System.out.print(integer + " ");
+//                    System.out.print(integer + " ");
+                    System.out.print(graph.vertexName.get(integer) + " ");
                 }
                 System.out.println();
             }
@@ -60,14 +85,22 @@ public class ApproximateAlgorithm {
 
     public void printVertexPath() {
         for (Map.Entry<Integer, ArrayList<ArrayList<Integer>>> entry : vertexPath.entrySet()) {
-            System.out.println("---vertex id" + entry.getKey() + "start---");
+            System.out.println("---vertex value: " + graph.vertexName.get(entry.getKey()) + " start---");
             for (ArrayList<Integer> path : entry.getValue()) {
                 for (Integer integer : path) {
-                    System.out.print(integer + " ");
+//                    System.out.print(integer + " ");
+                    System.out.print(graph.vertexName.get(integer) + " ");
                 }
                 System.out.println();
             }
-            System.out.println("---vertex id" + entry.getKey() + "end---");
+            System.out.println("---vertex value: " + graph.vertexName.get(entry.getKey()) + " end---");
+        }
+    }
+
+    public void printVertexWeight() {
+        for (Map.Entry<Integer, Double> entry : vertexWeight.entrySet()) {
+            System.out.println("---vertex value: " + graph.vertexName.get(entry.getKey()) +
+                " vertex weight: " + entry.getValue() + " ---");
         }
     }
 }
