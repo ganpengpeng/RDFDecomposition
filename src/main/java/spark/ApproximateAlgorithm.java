@@ -10,6 +10,7 @@ public class ApproximateAlgorithm {
     HashMap<Integer, Double> vertexWeight;
     //    Set<Integer> vertexSet;
     Graph graph;
+    int maxPathGroup;
 
     public ApproximateAlgorithm(String path) {
         graph = new Graph(path);
@@ -21,12 +22,12 @@ public class ApproximateAlgorithm {
 
     public static void main(String[] args) {
         ApproximateAlgorithm aa;
+        System.out.println(System.getProperty("user.home"));
         if (System.getProperty("os.name").contains("Windows")) {
             aa = new ApproximateAlgorithm("C:\\Users\\peng\\IdeaProjects\\spark-jni\\graph.n3");
-        } else if (System.getProperty("os.name").contains("Linux")){
-            aa = new ApproximateAlgorithm("/home/peng/IdeaProjects/spark-jni/graph.n3");
         } else {
-            aa = new ApproximateAlgorithm("/home/ganpeng/spark/graph.n3");
+            aa = new ApproximateAlgorithm(System.getProperty("user.home") +
+                "/IdeaProjects/spark-jni/graph.n3");
         }
         aa.initialize();
         aa.printResult();
@@ -46,12 +47,22 @@ public class ApproximateAlgorithm {
 
     public void mergeVertex(Integer vid) {
         // TODO
+        ArrayList<ArrayList<Integer>> pathSet = vertexPath.get(vid);
+        for (ArrayList<Integer> path1 : pathSet) {
+            for (ArrayList<ArrayList<Integer>> group : result) {
+                for (ArrayList<Integer> path2 : group) {
+                    if (System.identityHashCode(path1) == System.identityHashCode(path2)) {
 
+                    }
+                }
+            }
+        }
     }
 
     public void initialize() {
         graph.loadGraph();
         graph.generateEP();
+        maxPathGroup = 0;
         //init Res and E<v>
         for (ArrayList<Integer> arrayList : graph.endToEndPathSet) {
             result.add(new ArrayList<>());
@@ -80,6 +91,7 @@ public class ApproximateAlgorithm {
         for (ArrayList<ArrayList<Integer>> pathGroup : result) {
             System.out.println("---path group start---");
             for (ArrayList<Integer> path : pathGroup) {
+//                System.out.println(System.identityHashCode(path));
                 for (Integer integer : path) {
 //                    System.out.print(integer + " ");
                     System.out.print(graph.vertexName.get(integer) + " ");
@@ -94,6 +106,7 @@ public class ApproximateAlgorithm {
         for (Map.Entry<Integer, ArrayList<ArrayList<Integer>>> entry : vertexPath.entrySet()) {
             System.out.println("---vertex value: " + graph.vertexName.get(entry.getKey()) + " start---");
             for (ArrayList<Integer> path : entry.getValue()) {
+//                System.out.println(System.identityHashCode(path));
                 for (Integer integer : path) {
 //                    System.out.print(integer + " ");
                     System.out.print(graph.vertexName.get(integer) + " ");
@@ -107,7 +120,7 @@ public class ApproximateAlgorithm {
     public void printVertexWeight() {
         for (Map.Entry<Integer, Double> entry : vertexWeight.entrySet()) {
             System.out.println("---vertex value: " + graph.vertexName.get(entry.getKey()) +
-                    " vertex weight: " + entry.getValue() + " ---");
+                " vertex weight: " + entry.getValue() + " ---");
         }
     }
 }
