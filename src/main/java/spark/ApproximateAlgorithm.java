@@ -1,23 +1,21 @@
 package spark;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ApproximateAlgorithm {
+    static final int k = 2;
     ArrayList<ArrayList<ArrayList<Integer>>> result;
     HashMap<Integer, ArrayList<ArrayList<Integer>>> vertexPath;
     HashMap<Integer, Double> vertexWeight;
-    //    Set<Integer> vertexSet;
+    Set<Integer> vertexSet;
     Graph graph;
-    int maxPathGroup;
 
     public ApproximateAlgorithm(String path) {
         graph = new Graph(path);
         result = new ArrayList<>();
         vertexPath = new HashMap<>();
         vertexWeight = new HashMap<>();
-//        vertexSet = new HashSet<>();
+        vertexSet = new HashSet<>();
     }
 
     public static void main(String[] args) {
@@ -30,39 +28,80 @@ public class ApproximateAlgorithm {
                 "/IdeaProjects/spark-jni/graph.n3");
         }
         aa.initialize();
-        aa.printResult();
-        aa.printVertexPath();
-        aa.printVertexWeight();
+        //aa.printResult();
+        //aa.printVertexPath();
+        //aa.printVertexWeight();
+        aa.approximateAlgorithm();
     }
 
     public void approximateAlgorithm() {
-        //merge start vertices
+        /*
+         * firstly, we can merge start vertices which have zero in degree.
+         * then, merge vertex according their weight.
+         */
+
+        // merge start vertices
         for (Map.Entry<Integer, Integer> entry : graph.inDegree.entrySet()) {
-            if (entry.getKey() == 0) {
-                //mergeVertex();
-                // TODO
-            }
-        }
-    }
-
-    public void mergeVertex(Integer vid) {
-        // TODO
-        ArrayList<ArrayList<Integer>> pathSet = vertexPath.get(vid);
-        for (ArrayList<Integer> path1 : pathSet) {
-            for (ArrayList<ArrayList<Integer>> group : result) {
-                for (ArrayList<Integer> path2 : group) {
-                    if (System.identityHashCode(path1) == System.identityHashCode(path2)) {
-
-                    }
+            if (entry.getValue() == 0) {
+                if (mergeVertex(entry.getKey()) == true) {
+                    vertexSet.add(entry.getKey());
+                } else {
+                    System.out.println("vertex id: " + entry.getKey() + " name: " +
+                        graph.vertexName.get(entry.getKey()) + " size overflow, not merged!");
                 }
             }
         }
+
+        // sort vertices according their weight by ascending
+        ArrayList<Map.Entry<Integer, Double>> list = new ArrayList<Map.Entry<Integer, Double>>(
+            vertexWeight.entrySet());
+        // ascend sort
+        Collections.sort(list, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+        for (Map.Entry<Integer, Double> entry : list) {
+            // TODO
+        }
+    }
+
+    public boolean mergeVertex(Integer vid) {
+        /*
+         * edge case:
+         *  1. there is only one end to end path passing to vertex, case to do.
+         *  2. path group size will big than ceil(n/k) after merging a vertex.
+         *      in this case, do not execute merge operation.
+         */
+
+        // find groups that contain paths which is passing vertex vid
+        ArrayList<ArrayList<ArrayList<Integer>>> groupForMerge = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> pathSet = vertexPath.get(vid);
+        for (ArrayList<Integer> path1 : pathSet) {
+            for (ArrayList<ArrayList<Integer>> group : result) {
+                if (!groupForMerge.contains(group) && group.contains(path1)) {
+                    groupForMerge.add(group);
+                }
+            }
+        }
+        int mergedGroupSize = 0;
+        for (ArrayList<ArrayList<Integer>> group : groupForMerge) {
+            mergedGroupSize += group.size();
+        }
+        // if the sum of group size big than ceil(n/k), print message and return false.
+        if (mergedGroupSize > Math.ceil(graph.endToEndPathSet.size() / (double) k)) {
+
+            return false;
+        }
+        Iterator<ArrayList<ArrayList<Integer>>> iterator = groupForMerge.iterator();
+        ArrayList<ArrayList<Integer>> firstGroup = iterator.next();
+        while (iterator.hasNext()) {
+            ArrayList<ArrayList<Integer>> nextGroup = iterator.next();
+            firstGroup.addAll(nextGroup);
+            result.remove(nextGroup);
+        }
+        return true;
     }
 
     public void initialize() {
         graph.loadGraph();
         graph.generateEP();
-        maxPathGroup = 0;
         //init Res and E<v>
         for (ArrayList<Integer> arrayList : graph.endToEndPathSet) {
             result.add(new ArrayList<>());
