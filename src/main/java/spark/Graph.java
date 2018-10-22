@@ -38,7 +38,15 @@ public class Graph {
     }
 
     public boolean loadGraph() {
-
+        /*
+         *  **************************************************************
+         *  WARNING: I found that there are duplicate triple in test
+         *     n3 file, and this function can solve this case, but
+         *     indegree and outdegree will add even it is a duplicate
+         *     triple. So, indegree and outdegree will only use to
+         *     judge a vertex if it is a start vertex or end vertex.
+         *  **************************************************************
+         */
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dataPath));
             String triple = reader.readLine();

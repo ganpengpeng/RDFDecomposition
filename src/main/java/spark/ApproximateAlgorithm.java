@@ -23,15 +23,20 @@ public class ApproximateAlgorithm {
         System.out.println(System.getProperty("user.home"));
         if (System.getProperty("os.name").contains("Windows")) {
             aa = new ApproximateAlgorithm("C:\\Users\\peng\\IdeaProjects\\spark-jni\\graph.n3");
+        } else if (System.getProperty("user.home").contains("peng")) {
+            aa = new ApproximateAlgorithm(System.getProperty("user.home") +
+                "/IdeaProjects/spark-jni/LUBM1U.n3");
         } else {
             aa = new ApproximateAlgorithm(System.getProperty("user.home") +
-                "/IdeaProjects/spark-jni/graph.n3");
+                "/spark/graph.n3");
         }
         aa.initialize();
-        //aa.printResult();
+        aa.printResult();
         //aa.printVertexPath();
         //aa.printVertexWeight();
         aa.approximateAlgorithm();
+        System.out.println("------ I am the dividing line ------");
+        aa.printResult();
     }
 
     public void approximateAlgorithm() {
@@ -43,7 +48,7 @@ public class ApproximateAlgorithm {
         // merge start vertices
         for (Map.Entry<Integer, Integer> entry : graph.inDegree.entrySet()) {
             if (entry.getValue() == 0) {
-                if (mergeVertex(entry.getKey()) == true) {
+                if (mergeVertex(entry.getKey())) {
                     vertexSet.add(entry.getKey());
                 } else {
                     System.out.println("vertex id: " + entry.getKey() + " name: " +
@@ -55,17 +60,27 @@ public class ApproximateAlgorithm {
         // sort vertices according their weight by ascending
         ArrayList<Map.Entry<Integer, Double>> list = new ArrayList<Map.Entry<Integer, Double>>(
             vertexWeight.entrySet());
-        // ascend sort
+        // ascending sort
         Collections.sort(list, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+        // merge by weight
         for (Map.Entry<Integer, Double> entry : list) {
-            // TODO
+            // if there is only one path passing a vertex v, then add v to merged vertices set.
+            if (vertexPath.get(entry.getKey()).size() == 1) {
+                vertexSet.add(entry.getKey());
+            } else if (mergeVertex(entry.getKey())) {
+                vertexSet.add(entry.getKey());
+            } else {
+                System.out.println("vertex id: " + entry.getKey() + ", name: " +
+                    graph.vertexName.get(entry.getKey()) + ", size overflow, not merged!");
+            }
         }
     }
 
     public boolean mergeVertex(Integer vid) {
         /*
          * edge case:
-         *  1. there is only one end to end path passing to vertex, case to do.
+         *  1. there is only one end to end path passing a vertex, case solved in
+         *      spark/ApproximateAlgorithm.java:65.
          *  2. path group size will big than ceil(n/k) after merging a vertex.
          *      in this case, do not execute merge operation.
          */
@@ -80,6 +95,10 @@ public class ApproximateAlgorithm {
                 }
             }
         }
+
+        // vertex already been merged, then just return true.
+        if (groupForMerge.size() == 1)
+            return true;
         int mergedGroupSize = 0;
         for (ArrayList<ArrayList<Integer>> group : groupForMerge) {
             mergedGroupSize += group.size();
