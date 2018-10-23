@@ -20,15 +20,16 @@ public class ApproximateAlgorithm {
 
     public static void main(String[] args) {
         ApproximateAlgorithm aa;
-        System.out.println(System.getProperty("user.home"));
+        // args[0] is the data file name
+        System.out.println(System.getProperty("user.home") + "---" + args[0]);
         if (System.getProperty("os.name").contains("Windows")) {
-            aa = new ApproximateAlgorithm("C:\\Users\\peng\\IdeaProjects\\spark-jni\\graph.n3");
-        } else if (System.getProperty("user.home").contains("peng")) {
+            aa = new ApproximateAlgorithm("C:\\Users\\peng\\IdeaProjects\\spark-jni\\" + args[0]);
+        } else if (System.getProperty("user.home").contains("ganpeng")) {
             aa = new ApproximateAlgorithm(System.getProperty("user.home") +
-                "/IdeaProjects/spark-jni/LUBM1U.n3");
+                "/spark/" + args[0]);
         } else {
             aa = new ApproximateAlgorithm(System.getProperty("user.home") +
-                "/spark/graph.n3");
+                "/IdeaProjects/spark-jni/" + args[0]);
         }
         aa.initialize();
         aa.printResult();
