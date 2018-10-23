@@ -95,7 +95,6 @@ public class Graph {
             e.printStackTrace();
             return false;
         }
-
         return true;
     }
 
@@ -173,7 +172,7 @@ public class Graph {
         }
     }
 
-    public void printPath(ArrayList<Integer> path){
+    public void printPath(ArrayList<Integer> path) {
         for (Integer integer : path) {
             System.out.print(vertexName.get(integer) + " ");
 //            System.out.print(integer + " ");

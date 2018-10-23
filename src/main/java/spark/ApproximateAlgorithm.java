@@ -4,9 +4,13 @@ import java.util.*;
 
 public class ApproximateAlgorithm {
     static final int k = 2;
+    // path partition result.
     ArrayList<ArrayList<ArrayList<Integer>>> result;
+    // map vertex to the passing paths.
     HashMap<Integer, ArrayList<ArrayList<Integer>>> vertexPath;
+    // weight of vertex.
     HashMap<Integer, Double> vertexWeight;
+    // vertex has been merged.
     Set<Integer> vertexSet;
     Graph graph;
 
@@ -31,10 +35,14 @@ public class ApproximateAlgorithm {
             aa = new ApproximateAlgorithm(System.getProperty("user.home") +
                 "/IdeaProjects/spark-jni/" + args[0]);
         }
+
+        long start = System.currentTimeMillis();
         aa.initialize();
-        aa.printResult();
-        //aa.printVertexPath();
-        //aa.printVertexWeight();
+        long end = System.currentTimeMillis();
+        System.out.println("initialize: " + (end - start) / (double) 1000 + "(s)");
+        //aa.printResult();
+        aa.printVertexPath();
+        aa.printVertexWeight();
         aa.approximateAlgorithm();
         System.out.println("------ I am the dividing line ------");
         aa.printResult();
@@ -46,6 +54,7 @@ public class ApproximateAlgorithm {
          * then, merge vertex according their weight.
          */
 
+        long start = System.currentTimeMillis();
         // merge start vertices
         for (Map.Entry<Integer, Integer> entry : graph.inDegree.entrySet()) {
             if (entry.getValue() == 0) {
@@ -57,12 +66,19 @@ public class ApproximateAlgorithm {
                 }
             }
         }
+        long end = System.currentTimeMillis();
+        System.out.println("merge start vertices: " + (end - start) / (double) 1000 + "(s)");
 
+        start = System.currentTimeMillis();
         // sort vertices according their weight by ascending
         ArrayList<Map.Entry<Integer, Double>> list = new ArrayList<Map.Entry<Integer, Double>>(
             vertexWeight.entrySet());
         // ascending sort
         Collections.sort(list, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+        end = System.currentTimeMillis();
+        System.out.println("sort vertices by weight: " + (end - start) / (double) 1000 + "(s)");
+
+        start = System.currentTimeMillis();
         // merge by weight
         for (Map.Entry<Integer, Double> entry : list) {
             // if there is only one path passing a vertex v, then add v to merged vertices set.
@@ -75,6 +91,18 @@ public class ApproximateAlgorithm {
                     graph.vertexName.get(entry.getKey()) + ", size overflow, not merged!");
             }
         }
+        end = System.currentTimeMillis();
+        System.out.println("merge by weight: " + (end - start) / (double) 1000 + "(s)");
+
+        start = System.currentTimeMillis();
+        // reduce the size of path group to k.
+        while (result.size() > k) {
+            Collections.sort(result, ((o1, o2) -> Integer.compare(o1.size(), o2.size())));
+            result.get(0).addAll(result.get(1));
+            result.remove(1);
+        }
+        end = System.currentTimeMillis();
+        System.out.println("reduce path group size: " + (end - start) / (double) 1000 + "(s)");
     }
 
     public boolean mergeVertex(Integer vid) {
@@ -85,7 +113,6 @@ public class ApproximateAlgorithm {
          *  2. path group size will big than ceil(n/k) after merging a vertex.
          *      in this case, do not execute merge operation.
          */
-
         // find groups that contain paths which is passing vertex vid
         ArrayList<ArrayList<ArrayList<Integer>>> groupForMerge = new ArrayList<>();
         ArrayList<ArrayList<Integer>> pathSet = vertexPath.get(vid);
@@ -96,7 +123,6 @@ public class ApproximateAlgorithm {
                 }
             }
         }
-
         // vertex already been merged, then just return true.
         if (groupForMerge.size() == 1)
             return true;
@@ -106,7 +132,6 @@ public class ApproximateAlgorithm {
         }
         // if the sum of group size big than ceil(n/k), print message and return false.
         if (mergedGroupSize > Math.ceil(graph.endToEndPathSet.size() / (double) k)) {
-
             return false;
         }
         Iterator<ArrayList<ArrayList<Integer>>> iterator = groupForMerge.iterator();
