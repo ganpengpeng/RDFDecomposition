@@ -40,9 +40,9 @@ public class Graph {
     public boolean loadGraph() {
         /*
          *  **************************************************************
-         *  WARNING: I found that there are duplicate triple in test
+         *  WARNING: I found that there are duplicate triples in test
          *     n3 file, and this function can solve this case, but
-         *     indegree and outdegree will add even it is a duplicate
+         *     indegree and outdegree will increase even it is a duplicate
          *     triple. So, indegree and outdegree will only use to
          *     judge a vertex if it is a start vertex or end vertex.
          *  **************************************************************
