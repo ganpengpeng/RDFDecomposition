@@ -1,8 +1,5 @@
 package spark;
 
-import scala.Int;
-
-import javax.validation.constraints.NotNull;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -18,8 +15,10 @@ public class GraphX {
     //HashMap<Integer, HashMap<Integer, String>> reverseEdge;
     Integer count;
     String dataPath;
+    //the number of paths passing a vertex
     Map<Integer, Integer> vertexPathNum;
-    Set<Integer> startVertexSet;
+    //start vertex set of each vertex
+    Map<Integer, Set<Integer>> startVertexSet;
     List<List<Integer>> result;
 
     public GraphX(String path) {
@@ -32,13 +31,13 @@ public class GraphX {
         count = -1;
         dataPath = path;
         vertexPathNum = new HashMap<>();
-        startVertexSet = new HashSet<>();
+        startVertexSet = new HashMap<>();
         result = new ArrayList<>();
     }
 
-    public static void main(@NotNull String[] args) {
+    public static void main(String[] args) {
         GraphX graphX;
-        if (args.length != 1){
+        if (args.length != 1) {
             System.out.println("data file arg!");
             return;
         }
@@ -54,8 +53,9 @@ public class GraphX {
         long start = System.currentTimeMillis();
         graphX.loadGraph();
         graphX.generateEP();
-        //graphX.printPathNum();
+        graphX.mergeVertex();
         long end = System.currentTimeMillis();
+        graphX.printResult();
         System.out.println("GraphX: " + (end - start) / (double) 1000 + "(s)");
     }
 
@@ -128,7 +128,7 @@ public class GraphX {
         for (Map.Entry<Integer, Integer> entry : inDegree.entrySet()) {
             if (entry.getValue() == 0) {
                 result.add(new ArrayList<>());
-                result.get(result.size()-1).add(entry.getValue());
+                result.get(result.size() - 1).add(entry.getKey());
                 path.clear();
                 DFS(path, visited, entry.getKey());
             }
@@ -136,7 +136,7 @@ public class GraphX {
         for (int i = 0; i < visited.length; ++i) {
             if (visited[i] == false) {
                 result.add(new ArrayList<>());
-                result.get(result.size()-1).add(i);
+                result.get(result.size() - 1).add(i);
                 path.clear();
                 DFS(path, visited, i);
             }
@@ -145,6 +145,12 @@ public class GraphX {
 
     public void DFS(ArrayList<Integer> path, boolean[] visited, Integer id) {
         path.add(id);
+        try {
+            startVertexSet.get(id).add(path.get(0));
+        } catch (NullPointerException e) {
+            startVertexSet.put(id, new HashSet<>());
+            startVertexSet.get(id).add(path.get(0));
+        }
         visited[id] = true;
         if (outDegree.get(id) == 0) {
             incPathNum(path);
@@ -172,9 +178,18 @@ public class GraphX {
         }
     }
 
-    public void mergeVertex(){
-
+    public void mergeVertex() {
+        ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<>(vertexPathNum.entrySet());
+        // ascending sort
+        Collections.sort(list, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+        for (Map.Entry<Integer, Integer> entry : list) {
+            Set<Integer> verticesForMerge = startVertexSet.get(entry.getKey());
+            for (List<Integer> integers : result) {
+                //TODO merge vertex group
+            }
+        }
     }
+
     public boolean loadGraph(String path) {
         dataPath = path;
         return loadGraph();
@@ -184,23 +199,14 @@ public class GraphX {
         count += 1;
     }
 
-    public void printGraph() {
-        if (count == 0)
-            return;
-        int i = 0;
-        for (Integer integer : edge.keySet()) {
-            for (Integer integer1 : edge.get(integer).keySet()) {
-                System.out.println(vertexName.get(integer) + ' ' + edge.get(integer).get(integer1)
-                        + ' ' + vertexName.get(integer1));
-                i += 1;
+    public void printResult() {
+        for (List<Integer> vertexGroup : result) {
+            System.out.println("---vertex group start---");
+            for (Integer integer : vertexGroup) {
+                System.out.println("vertex id: " + integer);
             }
+            System.out.println("---vertex group end---");
         }
-        System.out.println("i = " + i);
-    }
-
-    public void printPathNum() {
-        for (Map.Entry<Integer, Integer> entry : vertexPathNum.entrySet()) {
-            System.out.println(vertexName.get(entry.getKey()) + ": " + entry.getValue());
-        }
+        System.out.println("vertex group number: " + result.size());
     }
 }
