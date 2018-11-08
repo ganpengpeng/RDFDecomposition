@@ -41,8 +41,8 @@ public class ApproximateAlgorithm {
         long end = System.currentTimeMillis();
         System.out.println("initialize: " + (end - start) / (double) 1000 + "(s)");
         //aa.printResult();
-        aa.printVertexPath();
-        aa.printVertexWeight();
+        //aa.printVertexPath();
+        //aa.printVertexWeight();
         aa.approximateAlgorithm();
         System.out.println("------ I am the dividing line ------");
         aa.printResult();
@@ -130,7 +130,7 @@ public class ApproximateAlgorithm {
         for (ArrayList<ArrayList<Integer>> group : groupForMerge) {
             mergedGroupSize += group.size();
         }
-        // if the sum of group size big than ceil(n/k), print message and return false.
+        // if the sum of group size bigger than ceil(n/k), print message and return false.
         if (mergedGroupSize > Math.ceil(graph.endToEndPathSet.size() / (double) k)) {
             return false;
         }
@@ -150,7 +150,6 @@ public class ApproximateAlgorithm {
         //init Res and E<v>
         for (ArrayList<Integer> arrayList : graph.endToEndPathSet) {
             result.add(new ArrayList<>());
-            //try to not use new here
             result.get(result.size() - 1).add(arrayList);
             for (int i = 0; i < arrayList.size() - 1; i++) {
                 try {
