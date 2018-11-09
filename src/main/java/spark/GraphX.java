@@ -7,6 +7,7 @@ import java.util.*;
 
 public class GraphX {
     //    Set<Integer> vertices;
+    static final int k = 2;
     Map<Integer, String> vertexName;
     Map<String, Integer> vertexId;
     Map<Integer, Integer> inDegree;
@@ -20,6 +21,7 @@ public class GraphX {
     //start vertex set of each vertex
     Map<Integer, Set<Integer>> startVertexSet;
     List<List<Integer>> result;
+    int startVertexNum;
 
     public GraphX(String path) {
         vertexId = new HashMap<>();
@@ -33,6 +35,7 @@ public class GraphX {
         vertexPathNum = new HashMap<>();
         startVertexSet = new HashMap<>();
         result = new ArrayList<>();
+        startVertexNum = 0;
     }
 
     public static void main(String[] args) {
@@ -56,6 +59,7 @@ public class GraphX {
         graphX.mergeVertex();
         long end = System.currentTimeMillis();
         graphX.printResult();
+        graphX.printOverView();
         System.out.println("GraphX: " + (end - start) / (double) 1000 + "(s)");
     }
 
@@ -141,14 +145,16 @@ public class GraphX {
                 DFS(path, visited, i);
             }
         }
+        //when this func return, result size is the number of start vertices.
+        startVertexNum = result.size();
     }
 
     public void DFS(ArrayList<Integer> path, boolean[] visited, Integer id) {
         path.add(id);
-        try {
-            startVertexSet.get(id).add(path.get(0));
-        } catch (NullPointerException e) {
-            startVertexSet.put(id, new HashSet<>());
+        if (path.size() > 1) {
+            if (startVertexSet.get(id) == null) {
+                startVertexSet.put(id, new HashSet<>());
+            }
             startVertexSet.get(id).add(path.get(0));
         }
         visited[id] = true;
@@ -168,25 +174,61 @@ public class GraphX {
     }
 
     public void incPathNum(ArrayList<Integer> path) {
-        for (Integer integer : path) {
-            Integer i = vertexPathNum.get(integer);
+        for (int j = 1; j < path.size(); j++) {
+            Integer i = vertexPathNum.get(path.get(j));
             if (i == null) {
-                vertexPathNum.put(integer, 1);
+                vertexPathNum.put(path.get(j), 1);
             } else {
-                vertexPathNum.put(integer, i + 1);
+                vertexPathNum.put(path.get(j), i + 1);
             }
         }
     }
 
     public void mergeVertex() {
+        List<List<Integer>> groups = new ArrayList<>();
         ArrayList<Map.Entry<Integer, Integer>> list = new ArrayList<>(vertexPathNum.entrySet());
         // ascending sort
         Collections.sort(list, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
+        System.out.println("Result size before merging: " + result.size());
         for (Map.Entry<Integer, Integer> entry : list) {
             Set<Integer> verticesForMerge = startVertexSet.get(entry.getKey());
+            groups.clear();
             for (List<Integer> integers : result) {
-                //TODO merge vertex group
+                for (Integer id : verticesForMerge) {
+                    if (integers.contains(id)) {
+                        groups.add(integers);
+                        break;
+                    }
+                }
             }
+            if (groups.size() == 1) {
+                continue;
+            }
+            if (groups.size() <= Math.ceil(startVertexNum / (double) k)) {
+                Iterator<List<Integer>> iterator = groups.iterator();
+                List<Integer> firstGroup = iterator.next();
+                while (iterator.hasNext()) {
+                    List<Integer> nextGroup = iterator.next();
+                    firstGroup.addAll(nextGroup);
+                    result.remove(nextGroup);
+                }
+            }
+            /*
+             *  case:
+             *      sometimes, if result.size=k+1, then groups.size=3.
+             *      in this case, result.size will be k-1 after merging vertex.
+             *      so, how to deal with this case?
+             *      in fact, this case will not occur.
+             */
+            if (result.size() <= k){
+                System.out.println("return! result size : " + result.size());
+                return;
+            }
+        }
+        while (result.size() > k) {
+            Collections.sort(result, ((o1, o2) -> Integer.compare(o1.size(), o2.size())));
+            result.get(0).addAll(result.get(1));
+            result.remove(1);
         }
     }
 
@@ -201,12 +243,27 @@ public class GraphX {
 
     public void printResult() {
         for (List<Integer> vertexGroup : result) {
-            System.out.println("---vertex group start---");
+            System.out.println();
+            System.out.println("---vertex group start, size: " + vertexGroup.size() + "------------------------------");
             for (Integer integer : vertexGroup) {
-                System.out.println("vertex id: " + integer);
+                System.out.println(vertexName.get(integer));
             }
-            System.out.println("---vertex group end---");
         }
+    }
+
+    public void printStartVertexSet() {
+        for (Map.Entry<Integer, Set<Integer>> entry: startVertexSet.entrySet()) {
+            System.out.println("---vertex set start---" + vertexName.get(entry.getKey()));
+            for (Integer integer : entry.getValue()) {
+                System.out.println(vertexName.get(integer));
+            }
+        }
+    }
+
+    public void printOverView(){
         System.out.println("vertex group number: " + result.size());
+        System.out.println("start vertex number: " + startVertexNum);
+        System.out.println("not start vertex number: " + startVertexSet.size());
+        System.out.println("total vertex number: " + vertexName.size());
     }
 }

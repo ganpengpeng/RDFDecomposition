@@ -30,7 +30,20 @@ public class Graph {
     }
 
     public static void main(String[] args) {
-        Graph graph = new Graph("/home/peng/IdeaProjects/spark-jni/graph.n3");
+        Graph graph;
+        if (args.length != 1) {
+            System.out.println("data file arg!");
+            return;
+        }
+        if (System.getProperty("os.name").contains("Windows")) {
+            graph = new Graph("C:\\Users\\peng\\IdeaProjects\\spark-jni\\" + args[0]);
+        } else if (System.getProperty("user.home").contains("ganpeng")) {
+            graph = new Graph(System.getProperty("user.home") +
+                    "/spark/" + args[0]);
+        } else {
+            graph = new Graph(System.getProperty("user.home") +
+                    "/IdeaProjects/spark-jni/" + args[0]);
+        }
         graph.loadGraph();
         //graph.printGraph();
         graph.generateEP();

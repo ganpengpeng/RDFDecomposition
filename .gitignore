@@ -1,3 +1,5 @@
 .idea
+*.iml
 target
-LUBM5M.n3
+*.n3
+*.nt
