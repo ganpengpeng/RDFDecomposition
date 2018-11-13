@@ -152,10 +152,11 @@ public class GraphX {
     public void DFS(ArrayList<Integer> path, boolean[] visited, Integer id) {
         path.add(id);
         if (path.size() > 1) {
-            if (startVertexSet.get(id) == null) {
-                startVertexSet.put(id, new HashSet<>());
-            }
-            startVertexSet.get(id).add(path.get(0));
+//            if (startVertexSet.get(id) == null) {
+//                startVertexSet.put(id, new HashSet<>());
+//            }
+//            startVertexSet.get(id).add(path.get(0));
+            startVertexSet.computeIfAbsent(id, k -> new HashSet<>()).add(path.get(0));
         }
         visited[id] = true;
         if (outDegree.get(id) == 0) {
@@ -175,12 +176,13 @@ public class GraphX {
 
     public void incPathNum(ArrayList<Integer> path) {
         for (int j = 1; j < path.size(); j++) {
-            Integer i = vertexPathNum.get(path.get(j));
-            if (i == null) {
-                vertexPathNum.put(path.get(j), 1);
-            } else {
-                vertexPathNum.put(path.get(j), i + 1);
-            }
+//            Integer i = vertexPathNum.get(path.get(j));
+//            if (i == null) {
+//                vertexPathNum.put(path.get(j), 1);
+//            } else {
+//                vertexPathNum.put(path.get(j), i + 1);
+//            }
+            vertexPathNum.merge(path.get(j), 1, (x, y) -> x + y);
         }
     }
 
@@ -220,7 +222,7 @@ public class GraphX {
              *      so, how to deal with this case?
              *      in fact, this case will not occur.
              */
-            if (result.size() <= k){
+            if (result.size() <= k) {
                 System.out.println("return! result size : " + result.size());
                 return;
             }
@@ -230,6 +232,10 @@ public class GraphX {
             result.get(0).addAll(result.get(1));
             result.remove(1);
         }
+    }
+
+    public void expandPath() {
+
     }
 
     public boolean loadGraph(String path) {
@@ -252,7 +258,7 @@ public class GraphX {
     }
 
     public void printStartVertexSet() {
-        for (Map.Entry<Integer, Set<Integer>> entry: startVertexSet.entrySet()) {
+        for (Map.Entry<Integer, Set<Integer>> entry : startVertexSet.entrySet()) {
             System.out.println("---vertex set start---" + vertexName.get(entry.getKey()));
             for (Integer integer : entry.getValue()) {
                 System.out.println(vertexName.get(integer));
@@ -260,7 +266,7 @@ public class GraphX {
         }
     }
 
-    public void printOverView(){
+    public void printOverView() {
         System.out.println("vertex group number: " + result.size());
         System.out.println("start vertex number: " + startVertexNum);
         System.out.println("not start vertex number: " + startVertexSet.size());

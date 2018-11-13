@@ -142,10 +142,6 @@ public class Graph {
         visited[id] = true;
         if (outDegree.get(id) == 0) {
             endToEndPathSet.add(new ArrayList<>(path));
-//            printPath(path);
-//            System.out.println("---start---");
-//            printEP();
-//            System.out.println("---end---");
             return;
         }
         HashMap<Integer, String> nextSet = edge.get(id);
@@ -153,10 +149,6 @@ public class Graph {
             if (path.contains(integer)) {
                 path.add(integer);
                 endToEndPathSet.add(new ArrayList<>(path));
-//                printPath(path);
-//                System.out.println("---start---");
-//                printEP();
-//                System.out.println("---end---");
                 path.remove(path.size() - 1);
             } else {
                 DFS(path, visited, integer);
