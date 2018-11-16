@@ -9,7 +9,7 @@ import java.util.*;
 public class GraphX extends Thread {
     //    Set<Integer> vertices;
     static final int k = 3;
-    static int threadNum = 0;
+    int threadNum = 0;
     Map<Integer, String> vertexName;
     Map<String, Integer> vertexId;
     Map<Integer, Integer> inDegree;
