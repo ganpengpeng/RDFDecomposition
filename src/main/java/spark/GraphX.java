@@ -204,10 +204,15 @@ public class GraphX extends Thread {
         for (Map.Entry<Integer, Integer> entry : list) {
             Set<Integer> verticesForMerge = startVertexSet.get(entry.getKey());
             groups.clear();
+            int groupSize = 0;
+            outer:
             for (List<Integer> integers : result) {
                 for (Integer id : verticesForMerge) {
                     if (integers.contains(id)) {
                         groups.add(integers);
+                        groupSize += integers.size();
+                        if (groupSize > Math.ceil(startVertexNum / (double) k))
+                            break outer;
                         break;
                     }
                 }
@@ -215,7 +220,7 @@ public class GraphX extends Thread {
             if (groups.size() == 1) {
                 continue;
             }
-            if (groups.size() <= Math.ceil(startVertexNum / (double) k)) {
+            if (groupSize <= Math.ceil(startVertexNum / (double) k)) {
                 Iterator<List<Integer>> iterator = groups.iterator();
                 List<Integer> firstGroup = iterator.next();
                 while (iterator.hasNext()) {
