@@ -9,10 +9,7 @@ import java.util.*;
 public class GraphX extends Thread {
     //    Set<Integer> vertices;
     static final int k = 3;
-<<<<<<< HEAD
     int threadNum = 0;
-=======
->>>>>>> master
     Map<Integer, String> vertexName;
     Map<String, Integer> vertexId;
     Map<Integer, Integer> inDegree;
@@ -68,11 +65,7 @@ public class GraphX extends Thread {
         long mid = System.currentTimeMillis();
         graphX.mergeVertex();
         long end = System.currentTimeMillis();
-<<<<<<< HEAD
-//        graphX.printResult();
-=======
         //graphX.printResult();
->>>>>>> master
         graphX.printOverView();
         System.out.println("generateEP: " + (mid - start) / (double) 1000 + "(s)");
         System.out.println("GraphX: " + (end - start) / (double) 1000 + "(s)");
@@ -261,14 +254,14 @@ public class GraphX extends Thread {
     public void start() {
         Thread[] t = new Thread[k];
         for (int i = 0; i < k; i++) {
-            t[i] = new Thread();
+            t[i] = new Thread(this, "group" + i);
             t[i].start();
         }
     }
 
     public void run() {
         try {
-            FileWriter fw = new FileWriter(dir + threadNum);
+            FileWriter fw = new FileWriter(dir + "\\" + Thread.currentThread().getName());
             generateEP(result.get(threadNum), fw);
             threadNum += 1;
         } catch (IOException e) {
