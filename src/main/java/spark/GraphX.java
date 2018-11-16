@@ -9,12 +9,16 @@ import java.util.*;
 public class GraphX extends Thread {
     //    Set<Integer> vertices;
     static final int k = 3;
+<<<<<<< HEAD
     int threadNum = 0;
+=======
+>>>>>>> master
     Map<Integer, String> vertexName;
     Map<String, Integer> vertexId;
     Map<Integer, Integer> inDegree;
     Map<Integer, Integer> outDegree;
     Map<Integer, Map<Integer, String>> edge;
+
     //HashMap<Integer, HashMap<Integer, String>> reverseEdge;
     Integer count;
     String dataPath;
@@ -61,10 +65,16 @@ public class GraphX extends Thread {
         long start = System.currentTimeMillis();
         graphX.loadGraph();
         graphX.generateEP();
+        long mid = System.currentTimeMillis();
         graphX.mergeVertex();
         long end = System.currentTimeMillis();
+<<<<<<< HEAD
 //        graphX.printResult();
+=======
+        //graphX.printResult();
+>>>>>>> master
         graphX.printOverView();
+        System.out.println("generateEP: " + (mid - start) / (double) 1000 + "(s)");
         System.out.println("GraphX: " + (end - start) / (double) 1000 + "(s)");
     }
 
