@@ -57,6 +57,13 @@ public class GraphX extends Thread {
         } else {
             dir = System.getProperty("user.home") + "/IdeaProjects/spark-jni/";
         }
+//        try {
+//            FileWriter fw = new FileWriter(dir + "testfile.n3");
+//            fw.write("this is a test string!");
+//            fw.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
         graphX = new GraphX(dir + args[0]);
         graphX.setDataOutputDir(dir);
         long start = System.currentTimeMillis();
@@ -65,10 +72,14 @@ public class GraphX extends Thread {
         long mid = System.currentTimeMillis();
         graphX.mergeVertex();
         long end = System.currentTimeMillis();
+        graphX.start();
+        long endEnd = System.currentTimeMillis();
         //graphX.printResult();
         graphX.printOverView();
-        System.out.println("generateEP: " + (mid - start) / (double) 1000 + "(s)");
-        System.out.println("GraphX: " + (end - start) / (double) 1000 + "(s)");
+        System.out.println("vertex weight: " + (mid - start) / (double) 1000 + "(s)");
+        System.out.println("vertex merge: " + (end - mid) / (double) 1000 + "(s)");
+        System.out.println("data: " + (endEnd - end) / (double) 1000 + "(s)");
+        System.out.println("total time: " + (endEnd - start) / (double) 1000 + "(s)");
     }
 
     public void setDataOutputDir(String aDir) {
@@ -254,41 +265,48 @@ public class GraphX extends Thread {
     public void start() {
         Thread[] t = new Thread[k];
         for (int i = 0; i < k; i++) {
-            t[i] = new Thread(this, "group" + i);
+            t[i] = new Thread(this, "thread" + i);
             t[i].start();
         }
     }
 
     public void run() {
         try {
-            FileWriter fw = new FileWriter(dir + "\\" + Thread.currentThread().getName());
+            System.out.println(Thread.currentThread().getName() + " running!");
+            FileWriter fw = new FileWriter(dir + "\\" + Thread.currentThread().getName() + ".n3");
             generateEP(result.get(threadNum), fw);
-            threadNum += 1;
+            fw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void generateEP(List<Integer> startVertexGroup, FileWriter fw) throws IOException {
+        threadNum += 1;
+        System.out.println("group " + (threadNum - 1) + " size: " + startVertexGroup.size());
         ArrayList<Integer> path = new ArrayList<>();
+        Map<Integer, Set<Integer>> flag = new HashMap<>();
         boolean[] visited = new boolean[vertexName.size()];
         for (Integer integer : startVertexGroup) {
             path.clear();
-            DFS(fw, path, visited, integer);
+            DFS(fw, flag, path, visited, integer);
         }
-        fw.close();
     }
 
-    public void DFS(FileWriter fw, ArrayList<Integer> path, boolean[] visited, Integer id) throws IOException {
+    public void DFS(FileWriter fw, Map<Integer, Set<Integer>> flag, ArrayList<Integer> path, boolean[] visited, Integer id) throws IOException {
         path.add(id);
         if (path.size() > 1) {
             Integer sId, oId;
             sId = path.get(path.size() - 2);
             oId = path.get(path.size() - 1);
-            String spo = vertexName.get(sId);
-            spo += edge.get(sId).get(oId);
-            spo += vertexName.get(oId);
-            fw.write(spo);
+            Set<Integer> set = flag.computeIfAbsent(sId, k -> new HashSet<>());
+            if (!set.contains(oId)) {
+                set.add(oId);
+                String spo = vertexName.get(sId) + " ";
+                spo += edge.get(sId).get(oId) + " ";
+                spo += vertexName.get(oId) + " ";
+                fw.write(spo + '\n');
+            }
         }
         visited[id] = true;
         if (outDegree.get(id) == 0) {
@@ -297,7 +315,7 @@ public class GraphX extends Thread {
         Map<Integer, String> nextSet = edge.get(id);
         for (Integer integer : nextSet.keySet()) {
             if (!path.contains(integer)) {
-                DFS(path, visited, integer);
+                DFS(fw, flag, path, visited, integer);
                 path.remove(path.size() - 1);
             }
         }
