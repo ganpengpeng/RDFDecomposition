@@ -7,12 +7,13 @@ import java.util.*;
 
 public class GraphX {
     //    Set<Integer> vertices;
-    static final int k = 2;
+    static final int k = 3;
     Map<Integer, String> vertexName;
     Map<String, Integer> vertexId;
     Map<Integer, Integer> inDegree;
     Map<Integer, Integer> outDegree;
     Map<Integer, Map<Integer, String>> edge;
+
     //HashMap<Integer, HashMap<Integer, String>> reverseEdge;
     Integer count;
     String dataPath;
@@ -56,10 +57,12 @@ public class GraphX {
         long start = System.currentTimeMillis();
         graphX.loadGraph();
         graphX.generateEP();
+        long mid = System.currentTimeMillis();
         graphX.mergeVertex();
         long end = System.currentTimeMillis();
-        graphX.printResult();
+        //graphX.printResult();
         graphX.printOverView();
+        System.out.println("generateEP: " + (mid - start) / (double) 1000 + "(s)");
         System.out.println("GraphX: " + (end - start) / (double) 1000 + "(s)");
     }
 
@@ -195,10 +198,15 @@ public class GraphX {
         for (Map.Entry<Integer, Integer> entry : list) {
             Set<Integer> verticesForMerge = startVertexSet.get(entry.getKey());
             groups.clear();
+            int groupSize = 0;
+            outer:
             for (List<Integer> integers : result) {
                 for (Integer id : verticesForMerge) {
                     if (integers.contains(id)) {
                         groups.add(integers);
+                        groupSize += integers.size();
+                        if (groupSize > Math.ceil(startVertexNum / (double) k))
+                            break outer;
                         break;
                     }
                 }
@@ -206,7 +214,7 @@ public class GraphX {
             if (groups.size() == 1) {
                 continue;
             }
-            if (groups.size() <= Math.ceil(startVertexNum / (double) k)) {
+            if (groupSize <= Math.ceil(startVertexNum / (double) k)) {
                 Iterator<List<Integer>> iterator = groups.iterator();
                 List<Integer> firstGroup = iterator.next();
                 while (iterator.hasNext()) {
