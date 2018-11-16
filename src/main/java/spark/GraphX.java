@@ -232,7 +232,7 @@ public class GraphX extends Thread {
              *      in fact, this case will not occur.
              */
             if (result.size() <= k) {
-                System.out.println("return! result size : " + result.size());
+                System.out.println("return! result size : " + result.size() + " k: " + k);
                 return;
             }
         }
