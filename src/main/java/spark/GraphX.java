@@ -2,12 +2,14 @@ package spark;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public class GraphX {
+public class GraphX extends Thread {
     //    Set<Integer> vertices;
-    static final int k = 2;
+    static final int k = 3;
+    static int threadNum = 0;
     Map<Integer, String> vertexName;
     Map<String, Integer> vertexId;
     Map<Integer, Integer> inDegree;
@@ -22,6 +24,7 @@ public class GraphX {
     Map<Integer, Set<Integer>> startVertexSet;
     List<List<Integer>> result;
     int startVertexNum;
+    String dir;
 
     public GraphX(String path) {
         vertexId = new HashMap<>();
@@ -36,6 +39,7 @@ public class GraphX {
         startVertexSet = new HashMap<>();
         result = new ArrayList<>();
         startVertexNum = 0;
+        dir = null;
     }
 
     public static void main(String[] args) {
@@ -44,23 +48,28 @@ public class GraphX {
             System.out.println("data file arg!");
             return;
         }
+        String dir;
         if (System.getProperty("os.name").contains("Windows")) {
-            graphX = new GraphX("C:\\Users\\peng\\IdeaProjects\\spark-jni\\" + args[0]);
+            dir = "C:\\Users\\peng\\IdeaProjects\\spark-jni\\";
         } else if (System.getProperty("user.home").contains("ganpeng")) {
-            graphX = new GraphX(System.getProperty("user.home") +
-                    "/spark/" + args[0]);
+            dir = System.getProperty("user.home") + "/spark/";
         } else {
-            graphX = new GraphX(System.getProperty("user.home") +
-                    "/IdeaProjects/spark-jni/" + args[0]);
+            dir = System.getProperty("user.home") + "/IdeaProjects/spark-jni/";
         }
+        graphX = new GraphX(dir + args[0]);
+        graphX.setDataOutputDir(dir);
         long start = System.currentTimeMillis();
         graphX.loadGraph();
         graphX.generateEP();
         graphX.mergeVertex();
         long end = System.currentTimeMillis();
-        graphX.printResult();
+//        graphX.printResult();
         graphX.printOverView();
         System.out.println("GraphX: " + (end - start) / (double) 1000 + "(s)");
+    }
+
+    public void setDataOutputDir(String aDir) {
+        dir = aDir;
     }
 
     public boolean loadGraph() {
@@ -234,8 +243,56 @@ public class GraphX {
         }
     }
 
-    public void expandPath() {
+    public void start() {
+        Thread[] t = new Thread[k];
+        for (int i = 0; i < k; i++) {
+            t[i] = new Thread();
+            t[i].start();
+        }
+    }
 
+    public void run() {
+        try {
+            FileWriter fw = new FileWriter(dir + threadNum);
+            generateEP(result.get(threadNum), fw);
+            threadNum += 1;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void generateEP(List<Integer> startVertexGroup, FileWriter fw) throws IOException {
+        ArrayList<Integer> path = new ArrayList<>();
+        boolean[] visited = new boolean[vertexName.size()];
+        for (Integer integer : startVertexGroup) {
+            path.clear();
+            DFS(fw, path, visited, integer);
+        }
+        fw.close();
+    }
+
+    public void DFS(FileWriter fw, ArrayList<Integer> path, boolean[] visited, Integer id) throws IOException {
+        path.add(id);
+        if (path.size() > 1) {
+            Integer sId, oId;
+            sId = path.get(path.size() - 2);
+            oId = path.get(path.size() - 1);
+            String spo = vertexName.get(sId);
+            spo += edge.get(sId).get(oId);
+            spo += vertexName.get(oId);
+            fw.write(spo);
+        }
+        visited[id] = true;
+        if (outDegree.get(id) == 0) {
+            return;
+        }
+        Map<Integer, String> nextSet = edge.get(id);
+        for (Integer integer : nextSet.keySet()) {
+            if (!path.contains(integer)) {
+                DFS(path, visited, integer);
+                path.remove(path.size() - 1);
+            }
+        }
     }
 
     public boolean loadGraph(String path) {
