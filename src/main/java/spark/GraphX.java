@@ -57,13 +57,6 @@ public class GraphX extends Thread {
         } else {
             dir = System.getProperty("user.home") + "/IdeaProjects/spark-jni/";
         }
-//        try {
-//            FileWriter fw = new FileWriter(dir + "testfile.n3");
-//            fw.write("this is a test string!");
-//            fw.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
         graphX = new GraphX(dir + args[0]);
         graphX.setDataOutputDir(dir);
         long start = System.currentTimeMillis();
@@ -273,7 +266,7 @@ public class GraphX extends Thread {
     public void run() {
         try {
             System.out.println(Thread.currentThread().getName() + " running!");
-            FileWriter fw = new FileWriter(dir + "\\" + Thread.currentThread().getName() + ".n3");
+            FileWriter fw = new FileWriter(dir + Thread.currentThread().getName() + ".n3");
             generateEP(result.get(threadNum), fw);
             fw.close();
         } catch (IOException e) {
