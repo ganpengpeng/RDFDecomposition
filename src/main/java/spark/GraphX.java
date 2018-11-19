@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 
 public class GraphX extends Thread {
     //    Set<Integer> vertices;
@@ -26,6 +27,7 @@ public class GraphX extends Thread {
     List<List<Integer>> result;
     int startVertexNum;
     String dir;
+    CountDownLatch latch;
 
     public GraphX(String path) {
         vertexId = new HashMap<>();
@@ -41,6 +43,7 @@ public class GraphX extends Thread {
         result = new ArrayList<>();
         startVertexNum = 0;
         dir = null;
+        latch = new CountDownLatch(k);
     }
 
     public static void main(String[] args) {
@@ -261,6 +264,11 @@ public class GraphX extends Thread {
             t[i] = new Thread(this, "thread" + i);
             t[i].start();
         }
+        try {
+            latch.await();
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
     }
 
     public void run() {
@@ -269,6 +277,7 @@ public class GraphX extends Thread {
             FileWriter fw = new FileWriter(dir + Thread.currentThread().getName() + ".n3");
             generateEP(result.get(threadNum), fw);
             fw.close();
+            latch.countDown();
         } catch (IOException e) {
             e.printStackTrace();
         }
