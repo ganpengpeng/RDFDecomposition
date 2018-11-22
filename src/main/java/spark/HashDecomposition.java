@@ -1,6 +1,9 @@
 package spark;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 public class HashDecomposition {
@@ -60,10 +63,9 @@ public class HashDecomposition {
         list = null;
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dir + data));
-//            FileWriter[] fw = new FileWriter[k];
-            BufferedWriter[] fw = new BufferedWriter[k];
+            FileWriter[] fw = new FileWriter[k];
             for (int i = 0; i < k; i++) {
-                fw[i] = new BufferedWriter(new FileWriter(dir + "partition" + i + ".n3"));
+                fw[i] = new FileWriter(dir + "partition" + i + ".n3");
             }
             String triple = reader.readLine();
             String[] spo;
@@ -74,7 +76,7 @@ public class HashDecomposition {
                 triple = reader.readLine();
             }
             reader.close();
-            for (BufferedWriter writer : fw) {
+            for (FileWriter writer : fw) {
                 writer.close();
             }
         } catch (IOException e) {
