@@ -47,7 +47,6 @@ public class GraphX extends Thread {
     }
 
     public static void main(String[] args) {
-        GraphX graphX;
         if (args.length != 1) {
             System.out.println("data file arg!");
             return;
@@ -60,7 +59,7 @@ public class GraphX extends Thread {
         } else {
             dir = System.getProperty("user.home") + "/IdeaProjects/spark-jni/";
         }
-        graphX = new GraphX(dir + args[0]);
+        GraphX graphX = new GraphX(dir + args[0]);
         graphX.setDataOutputDir(dir);
         long start = System.currentTimeMillis();
         graphX.loadGraph();
