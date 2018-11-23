@@ -93,9 +93,12 @@ public class GraphX extends Thread {
          */
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dataPath));
+            long triplesNum = 0;
+            long edgeNum = 0;
             String triple = reader.readLine();
             String[] spo;
             while (triple != null) {
+                triplesNum += 1;
                 spo = triple.split(" ");
                 Integer subjectId;
                 Integer objectId;
@@ -124,20 +127,25 @@ public class GraphX extends Thread {
                      *      when execute to this sentence.
                      *      (edge.get(subjectId).put(objectId, spo[1]);//spark/GraphX.java:94)
                      */
-                    if (edge.containsKey(objectId) == false) {
+                    if (!edge.containsKey(objectId)) {
                         edge.put(objectId, new HashMap<>());
                     }
                 }
                 // TODO triples number
                 if (edge.get(subjectId).get(objectId) == null) {
+                    edgeNum += 1;
                     edge.get(subjectId).put(objectId, spo[1]);
                     Integer originValue = outDegree.get(subjectId);
                     outDegree.put(subjectId, originValue + 1);
                     originValue = inDegree.get(objectId);
                     inDegree.put(objectId, originValue + 1);
+                } else {
+                    System.out.println(triple);
                 }
                 triple = reader.readLine();
             }
+            System.out.println("triples num: " + triplesNum + ".");
+            System.out.println("edges num: " + edgeNum + ".");
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -266,7 +274,7 @@ public class GraphX extends Thread {
         }
         try {
             latch.await();
-        }catch (InterruptedException e){
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
