@@ -128,6 +128,7 @@ public class GraphX extends Thread {
                         edge.put(objectId, new HashMap<>());
                     }
                 }
+                // TODO triples number
                 if (edge.get(subjectId).get(objectId) == null) {
                     edge.get(subjectId).put(objectId, spo[1]);
                     Integer originValue = outDegree.get(subjectId);

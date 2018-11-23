@@ -32,9 +32,11 @@ public class HashDecomposition {
         HashDecomposition hd = new HashDecomposition(dir);
         long start = System.currentTimeMillis();
         hd.readTriples(args[0]);
+        long mid = System.currentTimeMillis();
         hd.triplesDivide(args[0]);
         long end = System.currentTimeMillis();
-        System.out.println("time: " + (end - start) / (double) 1000 + "(s)");
+        System.out.println("readTriples time: " + (mid - start) / (double) 1000 + "(s)");
+        System.out.println("triplesDivide time: " + (end - mid) / (double) 1000 + "(s)");
     }
 
     public void readTriples(String data) {
