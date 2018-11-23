@@ -12,13 +12,11 @@ public class GraphX extends Thread {
     static final int k = 3;
     int threadNum = 0;
     Map<Integer, String> vertexName;
-    Map<String, Integer> vertexId;
+    Map<Integer, String> edgeName;
     Map<Integer, Integer> inDegree;
     Map<Integer, Integer> outDegree;
-    Map<Integer, Map<Integer, String>> edge;
-
+    Map<Integer, Map<Integer, Integer>> edge;
     //HashMap<Integer, HashMap<Integer, String>> reverseEdge;
-    Integer count;
     String dataPath;
     //the number of paths passing a vertex
     Map<Integer, Integer> vertexPathNum;
@@ -30,13 +28,12 @@ public class GraphX extends Thread {
     CountDownLatch latch;
 
     public GraphX(String path) {
-        vertexId = new HashMap<>();
         vertexName = new HashMap<>();
+        edgeName = new HashMap<>();
         inDegree = new HashMap<>();
         outDegree = new HashMap<>();
         edge = new HashMap<>();
         //reverseEdge = new HashMap<>();
-        count = -1;
         dataPath = path;
         vertexPathNum = new HashMap<>();
         startVertexSet = new HashMap<>();
@@ -93,59 +90,28 @@ public class GraphX extends Thread {
          */
         try {
             BufferedReader reader = new BufferedReader(new FileReader(dataPath));
-            long triplesNum = 0;
-            long edgeNum = 0;
             String triple = reader.readLine();
             String[] spo;
             while (triple != null) {
-                triplesNum += 1;
                 spo = triple.split(" ");
-                Integer subjectId;
-                Integer objectId;
-                subjectId = vertexId.get(spo[0]);
-                if (subjectId == null) {
-                    incCount();
-                    subjectId = count;
-                    vertexId.put(spo[0], subjectId);
-                    vertexName.put(subjectId, spo[0]);
-                    inDegree.put(subjectId, 0);
-                    outDegree.put(subjectId, 0);
-                    edge.put(subjectId, new HashMap<>());
+                Integer sHash = spo[0].hashCode();
+                Integer pHash = spo[1].hashCode();
+                Integer oHash = spo[2].hashCode();
+                if (!vertexName.containsKey(sHash)) {
+                    vertexName.put(sHash, spo[0]);
                 }
-                objectId = vertexId.get(spo[2]);
-                if (objectId == null) {
-                    incCount();
-                    objectId = count;
-                    vertexId.put(spo[2], objectId);
-                    vertexName.put(objectId, spo[2]);
-                    inDegree.put(objectId, 0);
-                    outDegree.put(objectId, 0);
-                    /*
-                     *  case:
-                     *      a vertex first occur as object, then occur as subject.
-                     *      if not put the object to edge set, exception will be thrown
-                     *      when execute to this sentence.
-                     *      (edge.get(subjectId).put(objectId, spo[1]);//spark/GraphX.java:94)
-                     */
-                    if (!edge.containsKey(objectId)) {
-                        edge.put(objectId, new HashMap<>());
-                    }
+                if (!edgeName.containsKey(pHash)) {
+                    edgeName.put(pHash, spo[1]);
                 }
-                // TODO triples number
-                if (edge.get(subjectId).get(objectId) == null) {
-                    edgeNum += 1;
-                    edge.get(subjectId).put(objectId, spo[1]);
-                    Integer originValue = outDegree.get(subjectId);
-                    outDegree.put(subjectId, originValue + 1);
-                    originValue = inDegree.get(objectId);
-                    inDegree.put(objectId, originValue + 1);
-                } else {
-                    System.out.println(triple);
+                if (!vertexName.containsKey(oHash)) {
+                    vertexName.put(oHash, spo[2]);
                 }
+                //TODO issue
+                edge.computeIfAbsent(sHash, k -> new HashMap<>()).computeIfAbsent(oHash, k -> pHash);
+                outDegree.merge(sHash, 1, (x, y) -> x + y);
+                inDegree.merge(oHash, 1, (x, y) -> x + y);
                 triple = reader.readLine();
             }
-            System.out.println("triples num: " + triplesNum + ".");
-            System.out.println("edges num: " + edgeNum + ".");
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -155,47 +121,41 @@ public class GraphX extends Thread {
 
     public void generateEP() {
         ArrayList<Integer> path = new ArrayList<>();
+        ArrayList<Integer> vertices = new ArrayList<>(vertexName.keySet());
         boolean[] visited = new boolean[vertexName.size()];
         for (Map.Entry<Integer, Integer> entry : inDegree.entrySet()) {
             if (entry.getValue() == 0) {
                 result.add(new ArrayList<>());
                 result.get(result.size() - 1).add(entry.getKey());
                 path.clear();
-                DFS(path, visited, entry.getKey());
+                DFS(path, visited, vertices.indexOf(entry.getKey()), vertices);
             }
         }
         for (int i = 0; i < visited.length; ++i) {
-            if (visited[i] == false) {
+            if (!visited[i]) {
                 result.add(new ArrayList<>());
-                result.get(result.size() - 1).add(i);
+                result.get(result.size() - 1).add(vertices.get(i));
                 path.clear();
-                DFS(path, visited, i);
+                DFS(path, visited, i, vertices);
             }
         }
         //when this func return, result size is the number of start vertices.
         startVertexNum = result.size();
     }
 
-    public void DFS(ArrayList<Integer> path, boolean[] visited, Integer id) {
-        path.add(id);
-        if (path.size() > 1) {
-//            if (startVertexSet.get(id) == null) {
-//                startVertexSet.put(id, new HashSet<>());
-//            }
-//            startVertexSet.get(id).add(path.get(0));
-            startVertexSet.computeIfAbsent(id, k -> new HashSet<>()).add(path.get(0));
-        }
-        visited[id] = true;
-        if (outDegree.get(id) == 0) {
+    public void DFS(ArrayList<Integer> path, boolean[] visited, Integer index, ArrayList<Integer> vertices) {
+        path.add(vertices.get(index));
+        visited[index] = true;
+        if (!outDegree.containsKey(vertices.get(index))) {
             incPathNum(path);
             return;
         }
-        Map<Integer, String> nextSet = edge.get(id);
+        Map<Integer, Integer> nextSet = edge.get(vertices.get(index));
         for (Integer integer : nextSet.keySet()) {
             if (path.contains(integer)) {
                 incPathNum(path);
             } else {
-                DFS(path, visited, integer);
+                DFS(path, visited, vertices.indexOf(integer), vertices);
                 path.remove(path.size() - 1);
             }
         }
@@ -203,13 +163,8 @@ public class GraphX extends Thread {
 
     public void incPathNum(ArrayList<Integer> path) {
         for (int j = 1; j < path.size(); j++) {
-//            Integer i = vertexPathNum.get(path.get(j));
-//            if (i == null) {
-//                vertexPathNum.put(path.get(j), 1);
-//            } else {
-//                vertexPathNum.put(path.get(j), i + 1);
-//            }
             vertexPathNum.merge(path.get(j), 1, (x, y) -> x + y);
+            startVertexSet.computeIfAbsent(path.get(j), k -> new HashSet<>()).add(path.get(0));
         }
     }
 
@@ -255,7 +210,7 @@ public class GraphX extends Thread {
              *      in fact, this case will not occur.
              */
             if (result.size() <= k) {
-                System.out.println("return! result size : " + result.size() + " k: " + k);
+                System.out.println("return! result size : " + result.size() + ", k: " + k);
                 return;
             }
         }
@@ -296,36 +251,38 @@ public class GraphX extends Thread {
         System.out.println("group " + (threadNum - 1) + " size: " + startVertexGroup.size());
         ArrayList<Integer> path = new ArrayList<>();
         Map<Integer, Set<Integer>> flag = new HashMap<>();
+        ArrayList<Integer> vertices = new ArrayList<>(vertexName.keySet());
         boolean[] visited = new boolean[vertexName.size()];
         for (Integer integer : startVertexGroup) {
             path.clear();
-            DFS(fw, flag, path, visited, integer);
+            DFS(fw, flag, path, visited, vertices.indexOf(integer), vertices);
         }
     }
 
-    public void DFS(FileWriter fw, Map<Integer, Set<Integer>> flag, ArrayList<Integer> path, boolean[] visited, Integer id) throws IOException {
-        path.add(id);
+    public void DFS(FileWriter fw, Map<Integer, Set<Integer>> flag, ArrayList<Integer> path,
+                    boolean[] visited, Integer index, ArrayList<Integer> vertices) throws IOException {
+        path.add(vertices.get(index));
         if (path.size() > 1) {
-            Integer sId, oId;
-            sId = path.get(path.size() - 2);
-            oId = path.get(path.size() - 1);
-            Set<Integer> set = flag.computeIfAbsent(sId, k -> new HashSet<>());
-            if (!set.contains(oId)) {
-                set.add(oId);
-                String spo = vertexName.get(sId) + " ";
-                spo += edge.get(sId).get(oId) + " ";
-                spo += vertexName.get(oId) + " ";
-                fw.write(spo + '\n');
+            Integer sHash, oHash;
+            sHash = path.get(path.size() - 2);
+            oHash = path.get(path.size() - 1);
+            Set<Integer> set = flag.computeIfAbsent(sHash, k -> new HashSet<>());
+            if (!set.contains(oHash)) {
+                set.add(oHash);
+                String spo = vertexName.get(sHash) + " ";
+                spo += edgeName.get(edge.get(sHash).get(oHash)) + " ";
+                spo += vertexName.get(oHash) + "\n";
+                fw.write(spo);
             }
         }
-        visited[id] = true;
-        if (outDegree.get(id) == 0) {
+        visited[index] = true;
+        if (!outDegree.containsKey(vertices.get(index))) {
             return;
         }
-        Map<Integer, String> nextSet = edge.get(id);
+        Map<Integer, Integer> nextSet = edge.get(vertices.get(index));
         for (Integer integer : nextSet.keySet()) {
             if (!path.contains(integer)) {
-                DFS(fw, flag, path, visited, integer);
+                DFS(fw, flag, path, visited, vertices.indexOf(integer), vertices);
                 path.remove(path.size() - 1);
             }
         }
@@ -334,10 +291,6 @@ public class GraphX extends Thread {
     public boolean loadGraph(String path) {
         dataPath = path;
         return loadGraph();
-    }
-
-    private void incCount() {
-        count += 1;
     }
 
     public void printResult() {

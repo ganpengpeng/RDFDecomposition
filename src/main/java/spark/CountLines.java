@@ -6,7 +6,7 @@ import java.io.IOException;
 
 public class CountLines {
     public static void main(String[] args) {
-        if (args.length != 1) {
+        if (args.length == 0) {
             System.out.println("data file arg!");
             return;
         }
@@ -18,16 +18,20 @@ public class CountLines {
         } else {
             dir = System.getProperty("user.home") + "/IdeaProjects/spark-jni/";
         }
-        long tripleNum = 0;
+        long[] tripleNum = new long[args.length];
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(dir + args[0]));
-            while (reader.readLine() != null) {
-                tripleNum += 1;
+            for (int i = 0; i < args.length; i++) {
+                BufferedReader reader = new BufferedReader(new FileReader(dir + args[i]));
+                while (reader.readLine() != null) {
+                    tripleNum[i] += 1;
+                }
+                reader.close();
             }
-            reader.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(args[0] + " triples num: " + tripleNum + ".");
+        for (int i = 0; i < args.length; i++) {
+            System.out.println(args[i] + " triples num: " + tripleNum[i] + ".");
+        }
     }
 }
