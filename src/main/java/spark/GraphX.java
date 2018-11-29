@@ -60,6 +60,7 @@ public class GraphX extends Thread {
         graphX.setDataOutputDir(dir);
         long start = System.currentTimeMillis();
         graphX.loadGraph();
+        long midMid = System.currentTimeMillis();
         graphX.generateEP();
         long mid = System.currentTimeMillis();
         graphX.mergeVertex();
@@ -68,7 +69,8 @@ public class GraphX extends Thread {
         long endEnd = System.currentTimeMillis();
         //graphX.printResult();
         graphX.printOverView();
-        System.out.println("vertex weight: " + (mid - start) / (double) 1000 + "(s)");
+        System.out.println("load graph: " + (midMid - start) / (double) 1000 + "(s)");
+        System.out.println("generateEP: " + (mid - midMid) / (double) 1000 + "(s)");
         System.out.println("vertex merge: " + (end - mid) / (double) 1000 + "(s)");
         System.out.println("data: " + (endEnd - end) / (double) 1000 + "(s)");
         System.out.println("total time: " + (endEnd - start) / (double) 1000 + "(s)");
@@ -144,13 +146,14 @@ public class GraphX extends Thread {
     }
 
     public void DFS(ArrayList<Integer> path, boolean[] visited, Integer index, ArrayList<Integer> vertices) {
-        path.add(vertices.get(index));
+        Integer hash = vertices.get(index);
+        path.add(hash);
         visited[index] = true;
-        if (!outDegree.containsKey(vertices.get(index))) {
+        if (!outDegree.containsKey(hash)) {
             incPathNum(path);
             return;
         }
-        Map<Integer, Integer> nextSet = edge.get(vertices.get(index));
+        Map<Integer, Integer> nextSet = edge.get(hash);
         for (Integer integer : nextSet.keySet()) {
             if (path.contains(integer)) {
                 incPathNum(path);
