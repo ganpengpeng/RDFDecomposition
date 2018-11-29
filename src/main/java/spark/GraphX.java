@@ -63,6 +63,7 @@ public class GraphX extends Thread {
         graphX.setDataOutputDir(dir);
         long start = System.currentTimeMillis();
         graphX.loadGraph();
+        long midMid = System.currentTimeMillis();
         graphX.generateEP();
         long mid = System.currentTimeMillis();
         graphX.mergeVertex();
@@ -71,7 +72,8 @@ public class GraphX extends Thread {
         long endEnd = System.currentTimeMillis();
         //graphX.printResult();
         graphX.printOverView();
-        System.out.println("vertex weight: " + (mid - start) / (double) 1000 + "(s)");
+        System.out.println("load graph: " + (midMid - start) / (double) 1000 + "(s)");
+        System.out.println("generateEP: " + (mid - midMid) / (double) 1000 + "(s)");
         System.out.println("vertex merge: " + (end - mid) / (double) 1000 + "(s)");
         System.out.println("data: " + (endEnd - end) / (double) 1000 + "(s)");
         System.out.println("total time: " + (endEnd - start) / (double) 1000 + "(s)");
