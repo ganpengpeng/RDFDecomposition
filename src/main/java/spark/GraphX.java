@@ -28,6 +28,7 @@ public class GraphX extends Thread {
     int startVertexNum;
     String dir;
     CountDownLatch latch;
+    int vPlus;
 
     public GraphX(String path) {
         vertexId = new HashMap<>();
@@ -213,6 +214,7 @@ public class GraphX extends Thread {
         // ascending sort
         Collections.sort(list, (o1, o2) -> o1.getValue().compareTo(o2.getValue()));
         System.out.println("Result size before merging: " + result.size());
+        this.vPlus = result.size();
         for (Map.Entry<Integer, Integer> entry : list) {
             Set<Integer> verticesForMerge = startVertexSet.get(entry.getKey());
             groups.clear();
@@ -233,6 +235,7 @@ public class GraphX extends Thread {
                 continue;
             }
             if (groupSize <= Math.ceil(startVertexNum / (double) k)) {
+                this.vPlus += 1;
                 Iterator<List<Integer>> iterator = groups.iterator();
                 List<Integer> firstGroup = iterator.next();
                 while (iterator.hasNext()) {
@@ -358,5 +361,6 @@ public class GraphX extends Thread {
         System.out.println("start vertex number: " + startVertexNum);
         System.out.println("not start vertex number: " + startVertexSet.size());
         System.out.println("total vertex number: " + vertexName.size());
+        System.out.println("vPlus number: " + this.vPlus);
     }
 }

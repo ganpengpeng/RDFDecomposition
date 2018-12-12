@@ -10,6 +10,7 @@ public class HashDecomposition {
     static final int k = 3;
     Map<Integer, Integer> vertexTriplesNum;
     String dir;
+    int crossPartVertexNum;
 
     public HashDecomposition(String path) {
         vertexTriplesNum = new HashMap<>();
@@ -37,6 +38,8 @@ public class HashDecomposition {
         long end = System.currentTimeMillis();
         System.out.println("readTriples time: " + (mid - start) / (double) 1000 + "(s)");
         System.out.println("triplesDivide time: " + (end - mid) / (double) 1000 + "(s)");
+        System.out.println("total time: " + (end - start) / (double) 1000 + "(s)");
+        System.out.println("cross part vertices num: " + hd.crossPartVertexNum);
     }
 
     public void readTriples(String data) {
@@ -58,9 +61,12 @@ public class HashDecomposition {
     public void triplesDivide(String data) {
         List<Map.Entry<Integer, Integer>> list = new ArrayList<>(vertexTriplesNum.entrySet());
         Collections.sort(list, (x, y) -> x.getValue().compareTo(y.getValue()));
-        List<Integer> hashCode = new ArrayList<>();
-        for (Map.Entry<Integer, Integer> entry : list) {
-            hashCode.add(entry.getKey());
+        Map<Integer, Integer> hashCode = new HashMap<>();
+        Map<Integer, Integer> crossPartition = new HashMap<>();
+        Set<Integer> vertices = new HashSet<>();
+        for (int i = 0; i < list.size(); i++) {
+            Map.Entry<Integer, Integer> entry = list.get(i);
+            hashCode.put(entry.getKey(), i);
         }
         list = null;
         try {
@@ -73,11 +79,31 @@ public class HashDecomposition {
             String[] spo;
             while (triple != null) {
                 spo = triple.split(" ");
-                int index = hashCode.indexOf(spo[0].hashCode()) % k;
+                //int index = hashCode.indexOf(spo[0].hashCode()) % k;
+                int sHash = spo[0].hashCode();
+                int oHash = spo[2].hashCode();
+                int index = hashCode.get(sHash) % k;
+                Integer sPart = crossPartition.get(sHash);
+                Integer oPart = crossPartition.get(oHash);
+                if (sPart != null) {
+                    if (sPart != index) {
+                        vertices.add(sHash);
+                    }
+                } else {
+                    crossPartition.put(sHash, index);
+                }
+                if (oPart != null) {
+                    if (oPart != index) {
+                        vertices.add(sHash);
+                    }
+                } else {
+                    crossPartition.put(oHash, index);
+                }
                 fw[index].write(triple + '\n');
                 triple = reader.readLine();
             }
             reader.close();
+            this.crossPartVertexNum = vertices.size();
             for (FileWriter writer : fw) {
                 writer.close();
             }
